@@ -1,17 +1,9 @@
-import { choice, noul, TypeSafeClient } from "@typesafe-ai/sdk";
-import { Game } from "./Game";
 import { Snake } from "../models/Snake";
 import { Board } from "./Board";
 import { Direction } from "../models/Direction";
-import { pos_fromHash, pos_add, pos_equals, pos_hash, Position, pos_subtract } from "../models/Position";
+import { pos_fromHash, pos_add, pos_hash, Position, pos_subtract } from "../models/Position";
 import { CONFIG } from "./Config";
-
-type Input = {
-    x: number,
-    y: number
-};
-
-const POLL_RATE = 1000; // ms
+import { isThinkResponse } from "../api/think";
 
 const specialTileNames = {
     [CONFIG.CELL_EMPTY]: "empty",
@@ -23,12 +15,10 @@ const specialTileNames = {
 export class Brain {
     private updateTimer = 0;
     private inputQueue: Array<Direction> = [];
-    private client?: TypeSafeClient;
     private direction: Direction = Direction.DOWN;
 
-    constructor(client?: TypeSafeClient) {
+    constructor() {
         this.updateTimer = 0;
-        this.client = client;
     }
 
     public onEat() {
@@ -36,10 +26,6 @@ export class Brain {
     }
 
     private async think(snake: Snake, board: Board) {
-        if (!this.client) {
-            return;
-        }
-
         let context = [];
 
         const direction = this.directionToPosition(snake.getDirection());
@@ -87,40 +73,45 @@ export class Brain {
 
         let prompt = context.join("\n");
 
-        const inputMap = {
-            "up": Direction.UP,
-            "down": Direction.DOWN,
-            "left": Direction.LEFT,
-            "right": Direction.RIGHT
-        } as const;
+        try {
+            const response = await fetch("/api/think", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt }),
+            });
 
-        const waitTranslation = {
-            "1": 1,
-            "2-3": 3,
-            "4-9": 9,
-            "10+": 10
-        } as const
-
-        let result = await this.client.systemOne({
-            state: {
-                prompt
-            },
-
-            questions: {
-                "input": choice("You're playing the classic game snake. What is the next most [optimal input]?", { "up": null, "down": null, "left": null, "right": null }),
-                "for": choice("How many tiles will you move in [optimal input] for until [next input] is optimal?", { "1": null, "2-3": null, "4-9": null, "10+": null }),
-                "swerve": choice("What direction is most optimal after [next input]?", { "up": null, "down": null, "left": null, "right": null }),
+            if (!response.ok) {
+                throw new Error(`Think request failed with status ${response.status}`);
             }
-        });
 
-        let wait = waitTranslation[result.answers.for.choice];
+            const result: unknown = await response.json();
+            if (!isThinkResponse(result)) {
+                throw new Error("Think response did not match the expected schema");
+            }
 
-        for (let i = 0; i < wait + 1; i++) {
-            this.inputQueue.push(inputMap[result.answers.input.choice]);
+            const inputMap = {
+                up: Direction.UP,
+                down: Direction.DOWN,
+                left: Direction.LEFT,
+                right: Direction.RIGHT,
+            } as const;
+            const waitTranslation = {
+                "1": 1,
+                "2-3": 3,
+                "4-9": 9,
+                "10+": 10,
+            } as const;
+            const wait = waitTranslation[result.answers.for.choice];
+
+            for (let i = 0; i < wait + 1; i++) {
+                this.inputQueue.push(inputMap[result.answers.input.choice]);
+            }
+
+            this.inputQueue.push(inputMap[result.answers.swerve.choice]);
+            this.updateTimer = wait;
+        } catch (error) {
+            console.error("Unable to get the next move", error);
         }
-
-        this.inputQueue.push(inputMap[result.answers.swerve.choice]);
-        this.updateTimer = wait
     }
 
     public tick(snake: Snake, board: Board): Direction {

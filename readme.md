@@ -1,6 +1,6 @@
 # Snake Game in TypeScript
 
-A classic Snake game implemented in TypeScript with browser rendering.
+This is a fork of Anton Aparin's snake game with TypeSafe system one integration.
 
 ## Project Structure
 
@@ -49,12 +49,20 @@ bun install
 
 ## Running the Game
 
-1. Start the development server:
+1. Set `TYPESAFE_API_KEY` in the environment used by the server. Bun automatically loads a local `.env` file.
+2. Start the server:
 ```bash
-bun start
+bun run start
 ```
 
-2. Open your browser and navigate to `http://localhost:9000`
+1. Open your browser and navigate to `http://localhost:3000`.
+
+The game sends `POST /api/think` requests with this JSON body:
+```json
+{ "prompt": "..." }
+```
+
+The API forwards the prompt to TypeSafe System One and returns the model, usage, and typed `input`, `for`, and `swerve` answers.
 
 ## Building for Production
 
@@ -76,33 +84,24 @@ The built files will be in the `dist` directory.
 ## Technologies Used
 
 - TypeScript
-- Webpack
-- HTML5 Canvas
 - Bun
+- HTML5 Canvas
 
 ## Project Setup Details
 
 The project uses the following main dependencies:
 - TypeScript for type-safe code
-- Webpack for bundling
-- ts-loader for TypeScript compilation
-- html-webpack-plugin for HTML file handling
+- Bun for bundling and serving the game and API
 
 ## Development
 
 To start development:
 1. Make sure all dependencies are installed with `bun install`
-2. Run `bun start` to start the development server
+2. Run `bun start` to start the server
 3. Make changes to the code - the game will automatically reload
+
+The API key that was previously present in the local `.env` must be rotated if it was ever shared or committed. Do not add API keys to source files or documentation.
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details
-
-## Author
-
-Anton Aparin
-
-## Repository
-
-[https://github.com/Fizzyhex/typesnake.git](https://github.com/Fizzyhex/typesnake.git)

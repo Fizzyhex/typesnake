@@ -11,17 +11,14 @@
     "@typesafe-ai/sdk": "^0.6.0"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.2",
     "@types/node": "^22.13.0",
-    "html-webpack-plugin": "^5.6.3",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.7.3",
-    "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.0"
+    "typescript": "^5.7.3"
   },
   "scripts": {
-    "start": "webpack serve --mode development",
-    "build": "webpack --mode production",
+    "start": "bun run src/server.ts",
+    "build": "bun build ./src/index.html --outdir dist --target browser --minify",
+    "typecheck": "tsc --noEmit",
     "dev": "tsc -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
