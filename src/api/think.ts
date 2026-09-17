@@ -11,7 +11,7 @@ export type ThinkRequest = {
 export type ThinkAnswer = {
   input: { choice: DirectionName };
   for: { choice: WaitChoice };
-  swerve: { choice: DirectionName };
+  next_input: { choice: DirectionName };
 };
 
 export type ThinkResponse = {
@@ -53,7 +53,7 @@ export function isThinkResponse(value: unknown): value is ThinkResponse {
     typeof answers === "object" && answers !== null &&
     isDirectionName(answers.input?.choice) &&
     isWaitChoice(answers.for?.choice) &&
-    isDirectionName(answers.swerve?.choice) &&
+    isDirectionName(answers.next_input?.choice) &&
     typeof usage === "object" && usage !== null &&
     typeof usage.input_tokens === "number" &&
     typeof usage.output_tokens === "number";

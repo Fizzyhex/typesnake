@@ -22,7 +22,7 @@ const questions = {
     "4-9": null,
     "10+": null,
   }),
-  swerve: choice("What direction is most optimal after [next input]?", {
+  next_input: choice("What's the next optimal input?", {
     up: null,
     down: null,
     left: null,
@@ -57,7 +57,26 @@ async function handleThink(request: Request): Promise<Response> {
   try {
     const result = await client.systemOne({
       state: { prompt: body.prompt },
-      questions,
+      questions: {
+        input: choice("What's your next input [optimal input]?", {
+          up: null,
+          down: null,
+          left: null,
+          right: null,
+        }),
+        for: choice("How many tiles will you move in that direction for?", {
+          "1": null,
+          "2-3": null,
+          "4-9": null,
+          "10+": null,
+        }),
+        next_input: choice("After you're done with that move, what move comes next?", {
+          up: null,
+          down: null,
+          left: null,
+          right: null,
+        }),
+      },
     });
 
     if (!isThinkResponse(result)) {

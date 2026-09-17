@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Snake = void 0;
 const Direction_1 = require("./Direction");
+const Config_1 = require("../game/Config");
 class Snake {
     constructor(startX, startY) {
         this.growing = false;
-        this.body = [{ x: startX, y: startY }];
+        this.body = Array.from({ length: Config_1.CONFIG.INITIAL_SNAKE_LENGTH }, (_, index) => ({ x: startX - index, y: startY }));
         this.direction = Direction_1.Direction.RIGHT;
     }
     getBody() {

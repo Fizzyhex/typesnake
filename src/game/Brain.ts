@@ -12,10 +12,31 @@ const specialTileNames = {
     [CONFIG.CELL_SNAKE]: "snake",
 } as const;
 
+const stringToDirection = {
+    up: Direction.DOWN, // up and down are flipped in this game, but we won't confuse the model with that info :)
+    down: Direction.UP,
+    left: Direction.LEFT,
+    right: Direction.RIGHT,
+} as const;
+
+const directionToString = {
+    [Direction.UP]: "up",
+    [Direction.RIGHT]: "right",
+    [Direction.DOWN]: "down",
+    [Direction.LEFT]: "left",
+} as const;
+
+const inverseDirections = {
+    [Direction.UP]: "down",
+    [Direction.RIGHT]: "left",
+    [Direction.DOWN]: "up",
+    [Direction.LEFT]: "right",
+} as const;
+
 export class Brain {
     private updateTimer = 0;
     private inputQueue: Array<Direction> = [];
-    private direction: Direction = Direction.DOWN;
+    private currentDirection: Direction = Direction.DOWN;
 
     constructor() {
         this.updateTimer = 0;
@@ -26,17 +47,26 @@ export class Brain {
     }
 
     private async think(snake: Snake, board: Board) {
-        let context = [];
+        let context = [`
+            You are playing a classic game of snake. You need to control the inputs to collect the food by moving towards it. Prioritise fixing the biggest misalignments first.
+            `];
 
-        const direction = this.directionToPosition(snake.getDirection());
+        const currentDirection = snake.getDirection();
+        const inverseCurrentDirection = inverseDirections[currentDirection];
+        
+        const direction = this.directionToPosition(currentDirection);
         const headPosition = snake.getHead();
 
-        context.push(`x:${headPosition.x} y:${headPosition.y}`);
-        context.push(`direction_x: ${direction.x} direction_y: ${direction.y}`);
-        context.push(`play area size: ${CONFIG.BOARD_WIDTH}, ${CONFIG.BOARD_HEIGHT}`);
+        context.push(`Currently moving ${directionToString[currentDirection]} (which prevents sudden 180s to go ${inverseCurrentDirection})`);
+
+        //context.push(`x:${headPosition.x} y:${headPosition.y}`);
+        //context.push(`direction_x: ${direction.x} direction_y: ${direction.y}`);
+        //context.push(`play area size: ${CONFIG.BOARD_WIDTH}, ${CONFIG.BOARD_HEIGHT}`);
+
+        context.push(`Currently moving ${directionToString[currentDirection]}`)
 
         for (let tileOffset = 0; tileOffset < 6; tileOffset++) {
-            const pos = pos_add(snake.getHead(), {
+            const pos = pos_add(headPosition, {
                 x: direction.x * (tileOffset + 1),
                 y: direction.y * (tileOffset + 1),
             });
@@ -55,11 +85,14 @@ export class Brain {
 
             let relative = pos_subtract(tilePos, headPosition);
 
-            context.push(`${tileName} is ${pos_hash(relative)} tiles away`)
+            let xDir = relative.x > 0 ? "right" : "left";
+            let yDir = relative.y > 0 ? "down" : "up";
+
+            context.push(`${tileName} is ${Math.abs(relative.x)} ${xDir} & ${Math.abs(relative.y)} ${yDir} away`)
         }
 
         for (let tileOffset = 0; tileOffset < 6; tileOffset++) {
-            const pos = pos_add(snake.getHead(), {
+            const pos = pos_add(headPosition, {
                 x: direction.x * (tileOffset + 1),
                 y: direction.y * (tileOffset + 1),
             });
@@ -85,29 +118,41 @@ export class Brain {
             }
 
             const result: unknown = await response.json();
+
             if (!isThinkResponse(result)) {
                 throw new Error("Think response did not match the expected schema");
             }
 
-            const inputMap = {
-                up: Direction.UP,
-                down: Direction.DOWN,
-                left: Direction.LEFT,
-                right: Direction.RIGHT,
-            } as const;
+            const responseElement = document.getElementById("thinkResponse");
+            
+            if (responseElement) {
+                responseElement.textContent = JSON.stringify(result, null, 2);
+            }
+
             const waitTranslation = {
                 "1": 1,
-                "2-3": 3,
-                "4-9": 9,
-                "10+": 10,
+                "2-3": 2,
+                "4-9": 3,
+                "10+": 6,
             } as const;
             const wait = waitTranslation[result.answers.for.choice];
 
+            this.inputQueue = [];
+
+            let nextInput = flip(result.answers.input.choice);
+            let lateInput = flip(result.answers.next_input.choice);
+
             for (let i = 0; i < wait + 1; i++) {
-                this.inputQueue.push(inputMap[result.answers.input.choice]);
+                this.inputQueue.push(stringToDirection[nextInput]);
+                console.log(`queue ${result.answers.input.choice}`);
             }
 
-            this.inputQueue.push(inputMap[result.answers.swerve.choice]);
+            this.inputQueue.push(stringToDirection[lateInput]);
+            console.log(`queue ${result.answers.next_input.choice}`);
+
+            // would be better to use a queue for this really
+            this.inputQueue = this.inputQueue.reverse();
+
             this.updateTimer = wait;
         } catch (error) {
             console.error("Unable to get the next move", error);
@@ -122,13 +167,13 @@ export class Brain {
             this.think(snake, board);
         }
 
-        let next = this.inputQueue.pop()
+        let next = this.inputQueue.pop();
 
-        if (next) {
-            this.direction = next;
+        if (next !== undefined) {
+            this.currentDirection = next;
             return next;
         } else {
-            return this.direction;
+            return this.currentDirection;
         }
     }
 
@@ -144,4 +189,18 @@ export class Brain {
                 return { x: -1, y: 0 };
         }
     }
+}
+
+type DirectionCommand = "up" | "down" | "left" | "right";
+
+function flip(choice: DirectionCommand): DirectionCommand {
+    if (choice === "up") {
+        return "down";
+    }
+
+    if (choice === "down") {
+        return "up";
+    }
+
+    return choice;
 }

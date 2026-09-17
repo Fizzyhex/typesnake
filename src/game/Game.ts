@@ -149,6 +149,9 @@ export class Game {
   }
 
   private update(): void {
+    let input = this.brain.tick(this.snake, this.board);
+    this.snake.setDirection(input);
+
     this.board.clear();
 
     const oldHead = this.snake.getHead();
@@ -169,10 +172,6 @@ export class Game {
       this.gameOver();
       return;
     }
-
-    let input = this.brain.tick(this.snake, this.board);
-    this.snake.setDirection(input);
-
 
     // update snake body on board
     const body = this.snake.getBody();

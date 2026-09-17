@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Renderer = void 0;
+const Config_1 = require("./Config");
 class Renderer {
     constructor(width, height) {
         this.canvas = document.getElementById('gameCanvas');
-        this.canvas.width = width * 20; // 20px per cell
-        this.canvas.height = height * 20;
-        this.cellSize = 20;
+        this.canvas.width = width * Config_1.CONFIG.CELL_SIZE;
+        this.canvas.height = height * Config_1.CONFIG.CELL_SIZE;
+        this.cellSize = Config_1.CONFIG.CELL_SIZE;
         const context = this.canvas.getContext('2d');
         if (!context) {
             throw new Error('Could not get canvas context');

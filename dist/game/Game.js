@@ -7,17 +7,41 @@ const Direction_1 = require("../models/Direction");
 const Config_1 = require("./Config");
 const Random_1 = require("../utils/Random");
 class Game {
-    constructor() {
+    constructor(brain) {
+        this.gameOverElement = document.getElementById('gameOver');
+        this.retryButton = document.getElementById('retryButton');
         this.board = new Board_1.Board();
-        const startPos = Random_1.Random.getRandomPosition(Config_1.CONFIG.BOARD_WIDTH, Config_1.CONFIG.BOARD_HEIGHT);
-        this.snake = new Snake_1.Snake(startPos.x, startPos.y);
-        this.snake.setDirection(Random_1.Random.getRandomDirection());
+        this.snake = this.createSnake();
         this.isRunning = false;
         this.food = null;
         this.generateFood();
         this.score = 0;
         this.status = true;
         this.setupInputHandling();
+        this.retryButton.addEventListener('click', () => this.restart());
+        this.brain = brain;
+    }
+    createSnake() {
+        const startXLimit = Config_1.CONFIG.BOARD_WIDTH - Config_1.CONFIG.INITIAL_SNAKE_LENGTH + 1;
+        const startPos = { x: Math.round(Config_1.CONFIG.BOARD_WIDTH / 2), y: Math.round(Config_1.CONFIG.BOARD_HEIGHT / 2) };
+        const snake = new Snake_1.Snake(startPos.x + Config_1.CONFIG.INITIAL_SNAKE_LENGTH - 1, startPos.y);
+        snake.setDirection(Random_1.Random.getRandomDirection());
+        return snake;
+    }
+    restart() {
+        this.board.clear();
+        this.snake = this.createSnake();
+        this.food = null;
+        this.generateFood();
+        this.score = 0;
+        this.status = true;
+        this.isRunning = true;
+        this.gameOverElement.hidden = true;
+        const scoreElement = document.getElementById('score');
+        if (scoreElement) {
+            scoreElement.innerText = '0';
+        }
+        this.gameLoop();
     }
     generateFood() {
         // get snake positions
@@ -74,8 +98,11 @@ class Game {
     gameOver() {
         this.isRunning = false;
         this.status = false;
-        alert(`Game Over! Your score is: ${this.score}`);
-        window.location.reload();
+        const finalScoreElement = document.getElementById('finalScore');
+        if (finalScoreElement) {
+            finalScoreElement.innerText = `${this.score}`;
+        }
+        this.gameOverElement.hidden = false;
     }
     updateScore() {
         const scoreElement = document.getElementById('score');
@@ -89,7 +116,9 @@ class Game {
             return;
         this.update();
         this.board.render();
-        setTimeout(() => this.gameLoop(), Config_1.CONFIG.GAME_SPEED);
+        if (this.isRunning) {
+            setTimeout(() => this.gameLoop(), Config_1.CONFIG.GAME_SPEED);
+        }
     }
     update() {
         this.board.clear();
@@ -121,6 +150,8 @@ class Game {
         if (this.food) {
             this.board.setCell(this.food, Config_1.CONFIG.CELL_FOOD);
         }
+        let input = this.brain.tick(this.snake, this.board);
+        this.snake.setDirection(input);
     }
 }
 exports.Game = Game;

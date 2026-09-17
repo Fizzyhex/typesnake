@@ -22,7 +22,7 @@ export class Board {
   setCell(position: Position, value: number): void {
     const hash = pos_hash(position);
     
-    if (value == CONFIG.CELL_EMPTY || value == CONFIG.CELL_SNAKE || value == CONFIG.CELL_HEAD) {
+    if (value === CONFIG.CELL_EMPTY || value === CONFIG.CELL_SNAKE || value === CONFIG.CELL_HEAD) {
       delete this.specialTileMap[hash];
     } else {
       this.specialTileMap[hash] = value;

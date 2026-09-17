@@ -1,6 +1,8 @@
-# Snake Game in TypeScript
+# Typesafe Snake
 
-This is a fork of Anton Aparin's snake game with TypeSafe system one integration.
+This is a misapplication of technology.
+
+...it's also a fork of Anton Aparin's snake game with TypeSafe system one integration.
 
 ## Project Structure
 
