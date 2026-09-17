@@ -4,34 +4,38 @@ import { Direction } from '../models/Direction';
 import { CONFIG } from './Config';
 import { Random } from '../utils/Random';
 import { Position } from '../models/Position';
+import { TypeSafeClient } from '@typesafe-ai/sdk';
+import { Brain } from './Brain';
 
 export class Game {
   private snake: Snake;
   private board: Board;
+  private brain: Brain;
   private isRunning: boolean;
   private food: Position | null;
   private score: number;
   private status: boolean;
   private readonly gameOverElement: HTMLElement;
   private readonly retryButton: HTMLButtonElement;
- 
-  constructor() {
+
+  constructor(brain: Brain) {
     this.gameOverElement = document.getElementById('gameOver') as HTMLElement;
     this.retryButton = document.getElementById('retryButton') as HTMLButtonElement;
     this.board = new Board();
     this.snake = this.createSnake();
     this.isRunning = false;
-    this.food=null;
+    this.food = null;
     this.generateFood();
     this.score = 0;
     this.status = true;
     this.setupInputHandling();
     this.retryButton.addEventListener('click', () => this.restart());
+    this.brain = brain;
   }
 
   private createSnake(): Snake {
     const startXLimit = CONFIG.BOARD_WIDTH - CONFIG.INITIAL_SNAKE_LENGTH + 1;
-    const startPos = Random.getRandomPosition(startXLimit, CONFIG.BOARD_HEIGHT);
+    const startPos = { x: Math.round(CONFIG.BOARD_WIDTH / 2), y: Math.round(CONFIG.BOARD_HEIGHT / 2) };
     const snake = new Snake(
       startPos.x + CONFIG.INITIAL_SNAKE_LENGTH - 1,
       startPos.y
@@ -146,14 +150,14 @@ export class Game {
 
   private update(): void {
     this.board.clear();
-    
+
     const oldHead = this.snake.getHead();
-    
+
     this.snake.move();
-    
-    if (this.food && 
-        this.snake.getHead().x === this.food.x && 
-        this.snake.getHead().y === this.food.y) {
+
+    if (this.food &&
+      this.snake.getHead().x === this.food.x &&
+      this.snake.getHead().y === this.food.y) {
       this.snake.grow();
       this.updateScore();
       this.generateFood();
@@ -165,6 +169,9 @@ export class Game {
       this.gameOver();
       return;
     }
+
+    let input = this.brain.tick(this.snake, this.board);
+    this.snake.setDirection(input);
 
 
     // update snake body on board

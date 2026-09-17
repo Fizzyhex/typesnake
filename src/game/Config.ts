@@ -3,7 +3,7 @@ export const CONFIG = {
     BOARD_HEIGHT: 30,
     CELL_SIZE: 13,
     INITIAL_SNAKE_LENGTH: 5,
-    GAME_SPEED: 100, // ms
+    GAME_SPEED: 500,//80, // ms
     CELL_EMPTY: 0,
     CELL_SNAKE: 1,
     CELL_HEAD: 2,
