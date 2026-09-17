@@ -32,27 +32,26 @@ src/
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- npm
+- Bun (v1.4 or higher)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/aaparin/Snake-game.git
-cd Snake-game
+git clone https://github.com/Fizzyhex/typesnake.git
+cd typesnake
 ```
 
 2. Install dependencies:
 ```bash
-npm install
+bun install
 ```
 
 ## Running the Game
 
 1. Start the development server:
 ```bash
-npm start
+bun start
 ```
 
 2. Open your browser and navigate to `http://localhost:9000`
@@ -61,7 +60,7 @@ npm start
 
 To create a production build:
 ```bash
-npm run build
+bun run build
 ```
 
 The built files will be in the `dist` directory.
@@ -79,7 +78,7 @@ The built files will be in the `dist` directory.
 - TypeScript
 - Webpack
 - HTML5 Canvas
-- Node.js
+- Bun
 
 ## Project Setup Details
 
@@ -92,8 +91,8 @@ The project uses the following main dependencies:
 ## Development
 
 To start development:
-1. Make sure all dependencies are installed
-2. Run `npm start` to start the development server
+1. Make sure all dependencies are installed with `bun install`
+2. Run `bun start` to start the development server
 3. Make changes to the code - the game will automatically reload
 
 ## License
@@ -106,4 +105,4 @@ Anton Aparin
 
 ## Repository
 
-[https://github.com/aaparin/Snake-game.git](https://github.com/aaparin/Snake-game.git)
+[https://github.com/Fizzyhex/typesnake.git](https://github.com/Fizzyhex/typesnake.git)
