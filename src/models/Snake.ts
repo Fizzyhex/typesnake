@@ -8,7 +8,10 @@ export class Snake {
   private growing: boolean = false;
 
   constructor(startX: number, startY: number) {
-    this.body = [{ x: startX, y: startY }];
+    this.body = Array.from(
+      { length: CONFIG.INITIAL_SNAKE_LENGTH },
+      (_, index) => ({ x: startX - index, y: startY })
+    );
     this.direction = Direction.RIGHT;
   }
 

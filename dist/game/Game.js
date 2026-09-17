@@ -13,7 +13,21 @@ class Game {
         this.snake = new Snake_1.Snake(startPos.x, startPos.y);
         this.snake.setDirection(Random_1.Random.getRandomDirection());
         this.isRunning = false;
+        this.food = null;
+        this.generateFood();
+        this.score = 0;
+        this.status = true;
         this.setupInputHandling();
+    }
+    generateFood() {
+        // get snake positions
+        const snakePositions = this.snake.getBody();
+        let newFood;
+        do {
+            newFood = Random_1.Random.getRandomPosition(Config_1.CONFIG.BOARD_WIDTH, Config_1.CONFIG.BOARD_HEIGHT);
+            // check if food is not on snake
+        } while (snakePositions.some(pos => pos.x === newFood.x && pos.y === newFood.y));
+        this.food = newFood;
     }
     setupInputHandling() {
         document.addEventListener('keydown', (event) => {
@@ -57,6 +71,19 @@ class Game {
         this.isRunning = true;
         this.gameLoop();
     }
+    gameOver() {
+        this.isRunning = false;
+        this.status = false;
+        alert(`Game Over! Your score is: ${this.score}`);
+        window.location.reload();
+    }
+    updateScore() {
+        const scoreElement = document.getElementById('score');
+        if (scoreElement) {
+            this.score++;
+            scoreElement.innerText = `: ${this.score}`;
+        }
+    }
     gameLoop() {
         if (!this.isRunning)
             return;
@@ -65,23 +92,35 @@ class Game {
         setTimeout(() => this.gameLoop(), Config_1.CONFIG.GAME_SPEED);
     }
     update() {
-        // Очищаем доску перед обновлением
         this.board.clear();
-        // Двигаем змейку
+        const oldHead = this.snake.getHead();
         this.snake.move();
-        // Обновляем отображение змейки на доске
+        if (this.food &&
+            this.snake.getHead().x === this.food.x &&
+            this.snake.getHead().y === this.food.y) {
+            this.snake.grow();
+            this.updateScore();
+            this.generateFood();
+        }
+        //check board borders
+        const head = this.snake.getHead();
+        if (head.x < 0 || head.x >= Config_1.CONFIG.BOARD_WIDTH || head.y < 0 || head.y >= Config_1.CONFIG.BOARD_HEIGHT) {
+            this.gameOver();
+            return;
+        }
+        // update snake body on board
         const body = this.snake.getBody();
-        // Отрисовываем тело
         body.forEach((segment, index) => {
             if (index === 0) {
-                // Голова
                 this.board.setCell(segment, Config_1.CONFIG.CELL_HEAD);
             }
             else {
-                // Тело
                 this.board.setCell(segment, Config_1.CONFIG.CELL_SNAKE);
             }
         });
+        if (this.food) {
+            this.board.setCell(this.food, Config_1.CONFIG.CELL_FOOD);
+        }
     }
 }
 exports.Game = Game;

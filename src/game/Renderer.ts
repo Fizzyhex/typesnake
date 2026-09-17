@@ -1,3 +1,5 @@
+import { CONFIG } from './Config';
+
 export class Renderer {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -5,9 +7,9 @@ export class Renderer {
   
     constructor(width: number, height: number) {
       this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-      this.canvas.width = width * 20; // 20px per cell
-      this.canvas.height = height * 20;
-      this.cellSize = 20;
+      this.canvas.width = width * CONFIG.CELL_SIZE;
+      this.canvas.height = height * CONFIG.CELL_SIZE;
+      this.cellSize = CONFIG.CELL_SIZE;
       
       
       const context = this.canvas.getContext('2d');

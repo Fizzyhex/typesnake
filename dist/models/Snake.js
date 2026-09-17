@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Snake = void 0;
 const Direction_1 = require("./Direction");
-const Config_1 = require("../game/Config");
 class Snake {
     constructor(startX, startY) {
+        this.growing = false;
         this.body = [{ x: startX, y: startY }];
         this.direction = Direction_1.Direction.RIGHT;
     }
@@ -20,6 +20,9 @@ class Snake {
     getDirection() {
         return this.direction;
     }
+    grow() {
+        this.growing = true;
+    }
     move() {
         const head = this.body[0];
         let newHead;
@@ -27,30 +30,35 @@ class Snake {
             case Direction_1.Direction.UP:
                 newHead = {
                     x: head.x,
-                    y: head.y - 1 < 0 ? Config_1.CONFIG.BOARD_HEIGHT - 1 : head.y - 1
+                    y: head.y - 1
                 };
                 break;
             case Direction_1.Direction.RIGHT:
                 newHead = {
-                    x: head.x + 1 >= Config_1.CONFIG.BOARD_WIDTH ? 0 : head.x + 1,
+                    x: head.x + 1,
                     y: head.y
                 };
                 break;
             case Direction_1.Direction.DOWN:
                 newHead = {
                     x: head.x,
-                    y: head.y + 1 >= Config_1.CONFIG.BOARD_HEIGHT ? 0 : head.y + 1
+                    y: head.y + 1
                 };
                 break;
             case Direction_1.Direction.LEFT:
                 newHead = {
-                    x: head.x - 1 < 0 ? Config_1.CONFIG.BOARD_WIDTH - 1 : head.x - 1,
+                    x: head.x - 1,
                     y: head.y
                 };
                 break;
         }
         this.body.unshift(newHead);
-        this.body.pop();
+        if (!this.growing) {
+            this.body.pop();
+        }
+        else {
+            this.growing = false;
+        }
     }
 }
 exports.Snake = Snake;

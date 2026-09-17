@@ -9,12 +9,26 @@
         display: block;
         margin: 0 auto;
       }
+
+      .score,
+      .game-over {
+        text-align: center;
+      }
+
+      .game-over[hidden] {
+        display: none;
+      }
     </style>
   </head>
   <body>
     <div class="score">
         <h1>Score: <span id="score">0</span></h1>
-    </body>
+    </div>
     <canvas id="gameCanvas"></canvas>
-   
+    <section id="gameOver" class="game-over" hidden>
+      <h2>Game Over</h2>
+      <p>Your score: <span id="finalScore">0</span></p>
+      <button id="retryButton" type="button">Try again</button>
+    </section>
+  </body>
 </html>
